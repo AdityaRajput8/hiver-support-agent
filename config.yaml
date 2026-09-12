@@ -1,0 +1,38 @@
+brand: "Uber_Support"
+
+models:
+  classifier: "claude-3-haiku-20240307"
+  drafter: "claude-3-haiku-20240307"
+  critic: "claude-3-5-sonnet-20241022"
+  judge: "claude-3-5-sonnet-20241022"
+  embedding: "all-MiniLM-L6-v2"
+
+retrieval:
+  top_k: 4
+  min_similarity_threshold: 0.58
+  index_path: "data/processed/faiss_index.bin"
+  metadata_path: "data/processed/index_metadata.parquet"
+
+policy:
+  confidence_threshold: 0.72
+  groundedness_threshold: 0.80
+  sentiment_escalation_keywords:
+    - "police"
+    - "lawyer"
+    - "attorney"
+    - "sue"
+    - "court"
+    - "assault"
+    - "harass"
+    - "threat"
+    - "accident"
+    - "emergency"
+    - "danger"
+    - "hospital"
+
+paths:
+  raw_csv: "data/raw/twcs.csv"
+  brand_subset_csv: "data/processed/uber_subset.csv"
+  threads_parquet: "data/processed/uber_threads.parquet"
+  golden_set: "data/golden/golden_set.csv"
+  taxonomy: "src/intents/taxonomy.yaml"

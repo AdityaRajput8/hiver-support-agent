@@ -1,0 +1,72 @@
+intents:
+  - id: "trip_fare_dispute"
+    description: "Customer disputes ride fare, unauthorized charges, surge pricing, or cancellation fees."
+    risk_level: "MEDIUM"
+    auto_handle_eligible: true
+    examples:
+      - "Why was I charged $45 for a 2 mile ride? This is blatant surge price gouging."
+      - "Uber charged me a $5 cancellation fee even though the driver never moved."
+
+  - id: "safety_incident"
+    description: "Reports of accidents, physical or verbal assault, intoxication, or dangerous driving."
+    risk_level: "CRITICAL"
+    auto_handle_eligible: false # Zero tolerance: Mandatory Human Escalation
+    examples:
+      - "The driver was speeding and ran two red lights. I felt in danger."
+      - "Driver assaulted my friend when dropping us off. Call the police."
+
+  - id: "lost_item"
+    description: "Customer left belongings (phone, wallet, keys, bag) in the vehicle."
+    risk_level: "LOW"
+    auto_handle_eligible: true
+    examples:
+      - "I left my black leather backpack in the trunk of the Honda Civic."
+      - "Left my iPhone in the back seat 10 mins ago, need driver contact."
+
+  - id: "driver_conduct"
+    description: "Complaints regarding rude behavior, refusing destination, or inappropriate remarks."
+    risk_level: "HIGH"
+    auto_handle_eligible: false
+    examples:
+      - "Driver was extremely rude and screamed at me when I asked to roll up window."
+      - "The driver refused to take my service dog and drove away."
+
+  - id: "account_access"
+    description: "Login failures, hacked accounts, 2FA issues, or unauthorized account modifications."
+    risk_level: "HIGH"
+    auto_handle_eligible: false
+    examples:
+      - "Someone hacked my account and took rides in Chicago while I live in NY."
+      - "I cannot log in, the verification SMS is not delivering to my phone."
+
+  - id: "promo_credit_issue"
+    description: "Promotional vouchers, referral bonuses, or Uber Cash not applying."
+    risk_level: "LOW"
+    auto_handle_eligible: true
+    examples:
+      - "My 20% discount coupon was not applied to my ride yesterday."
+      - "Referral credit is missing from my Uber Cash balance."
+
+  - id: "ride_cancellation_delay"
+    description: "Driver not showing up, driving in wrong direction, or ghost rides."
+    risk_level: "MEDIUM"
+    auto_handle_eligible: true
+    examples:
+      - "Driver accepted the ride and has been sitting in a parking lot for 20 mins."
+      - "Driver marked ride as completed but never picked me up."
+
+  - id: "general_inquiry"
+    description: "Questions about receipts, app features, business profiles, or lost receipts."
+    risk_level: "LOW"
+    auto_handle_eligible: true
+    examples:
+      - "How do I get an itemized PDF tax receipt for my ride last Friday?"
+      - "Can I schedule a ride 4 days in advance to the airport?"
+
+  - id: "other_unroutable"
+    description: "Incoherent complaints, spam, non-English text, or unparseable messages."
+    risk_level: "MEDIUM"
+    auto_handle_eligible: false
+    examples:
+      - "asdfghjk @Uber_Support help"
+      - "The economy is bad because of ride sharing apps."
