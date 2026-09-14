@@ -1,6 +1,10 @@
 import json
 import yaml
-from anthropic import Anthropic
+import os
+from dotenv import load_dotenv
+from groq import Groq
+
+load_dotenv()
 
 class LLMClassifier:
     def __init__(self, config_path: str = "config.yaml"):
@@ -9,14 +13,11 @@ class LLMClassifier:
         with open(self.cfg["paths"]["taxonomy"], "r") as f:
             self.taxonomy = yaml.safe_load(f)["intents"]
 
-        self.client = Anthropic()
+        self.client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
         self.model = self.cfg["models"]["classifier"]
 
     def _build_system_prompt(self) -> str:
-        intents_desc = "\n".join([
-            f"- `{item['id']}`: {item['description']}" 
-            for item in self.taxonomy
-        ])
+        intents_desc = "\n".join([f"- `{item['id']}`: {item['description']}" for item in self.taxonomy])
         return (
             "You are a specialized customer intent classifier for Uber Twitter support.\n"
             "Analyze the customer tweet and assign the most appropriate intent from this list:\n"
@@ -31,23 +32,16 @@ class LLMClassifier:
 
     def classify(self, text: str) -> dict:
         try:
-            response = self.client.messages.create(
+            response = self.client.chat.completions.create(
                 model=self.model,
-                max_tokens=200,
                 temperature=0.0,
-                system=self._build_system_prompt(),
-                messages=[{"role": "user", "content": f"Customer Tweet: \"{text}\""}]
+                max_tokens=120,
+                response_format={"type": "json_object"},
+                messages=[
+                    {"role": "system", "content": self._build_system_prompt()},
+                    {"role": "user", "content": f"Customer Tweet: \"{text}\""}
+                ]
             )
-            raw_content = response.content[0].text.strip()
-            # Handle possible markdown fencing
-            if raw_content.startswith("```"):
-                raw_content = raw_content.split("```")[1]
-                if raw_content.startswith("json"):
-                    raw_content = raw_content[4:]
-            return json.loads(raw_content.strip())
+            return json.loads(response.choices[0].message.content.strip())
         except Exception as e:
-            return {
-                "intent": "other_unroutable",
-                "confidence": 0.0,
-                "reasoning": f"Classification parse failure: {str(e)}"
-            }
+            return {"intent": "other_unroutable", "confidence": 0.0, "reasoning": f"Parse failure: {str(e)}"}

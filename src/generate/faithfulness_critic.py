@@ -1,17 +1,17 @@
 import json
 import yaml
+import os
+from dotenv import load_dotenv
 from typing import List, Dict
-from anthropic import Anthropic
+from groq import Groq
+
+load_dotenv()
 
 class FaithfulnessCritic:
-    """
-    Second-pass verification. Validates whether the draft introduces hallucinated
-    actions, non-existent contact methods, or unsupported promises.
-    """
     def __init__(self, config_path: str = "config.yaml"):
         with open(config_path, "r") as f:
             self.cfg = yaml.safe_load(f)
-        self.client = Anthropic()
+        self.client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
         self.model = self.cfg["models"]["critic"]
 
     def critique(self, query: str, draft: str, precedents: List[Dict]) -> dict:
@@ -35,17 +35,14 @@ class FaithfulnessCritic:
             f"Proposed Draft Reply: {draft}\n"
         )
 
-        response = self.client.messages.create(
+        response = self.client.chat.completions.create(
             model=self.model,
-            max_tokens=200,
             temperature=0.0,
-            system=system_prompt,
-            messages=[{"role": "user", "content": user_message}]
+            max_tokens=120,
+            response_format={"type": "json_object"},
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message}
+            ]
         )
-
-        raw = response.content[0].text.strip()
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
-        return json.loads(raw.strip())
+        return json.loads(response.choices[0].message.content.strip())

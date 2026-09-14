@@ -1,18 +1,16 @@
 import json
 import yaml
-from anthropic import Anthropic
+import os
+from dotenv import load_dotenv
+from groq import Groq
+
+load_dotenv()
 
 class SupportEvalJudge:
-    """
-    LLM-as-a-Judge for evaluating generated replies across 3 axes:
-    1. Groundedness / Faithfulness (1-5)
-    2. Brand Tone Consistency (1-5)
-    3. Actionability / Correct Protocol (1-5)
-    """
     def __init__(self, config_path: str = "config.yaml"):
         with open(config_path, "r") as f:
             self.cfg = yaml.safe_load(f)
-        self.client = Anthropic()
+        self.client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
         self.model = self.cfg["models"]["judge"]
 
     def judge_reply(self, customer_query: str, ground_truth_reply: str, model_draft: str) -> dict:
@@ -26,7 +24,7 @@ class SupportEvalJudge:
             "1. groundedness: Does it avoid hallucinating policies/phone numbers?\n"
             "2. brand_tone: Is it professional, empathetic, and concise (<280 chars)?\n"
             "3. actionability: Does it direct the user to the proper protocol (DM, Help section)?\n\n"
-            "Output valid JSON only:\n"
+            "Output valid JSON only matching:\n"
             "{\n"
             '  "groundedness": <1-5>,\n'
             '  "brand_tone": <1-5>,\n'
@@ -35,16 +33,11 @@ class SupportEvalJudge:
             "}"
         )
 
-        res = self.client.messages.create(
+        response = self.client.chat.completions.create(
             model=self.model,
-            max_tokens=250,
             temperature=0.0,
+            max_tokens=150,
+            response_format={"type": "json_object"},
             messages=[{"role": "user", "content": prompt}]
         )
-
-        raw = res.content[0].text.strip()
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
-        return json.loads(raw.strip())
+        return json.loads(response.choices[0].message.content.strip())

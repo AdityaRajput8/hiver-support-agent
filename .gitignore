@@ -1,0 +1,10 @@
+# Ignore the massive Kaggle dataset
+data/raw/twcs.csv
+
+# Ignore environments and cache
+venv/
+__pycache__/
+.env
+
+# Ignore large vector index binaries (the Makefile will rebuild them)
+data/processed/faiss_index.bin
